@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==3.1"
+djangorestframework = "*"
+djangorestframework-simplejwt = "==4.4.0"
+asgiref = "==3.2.10"
+pyjwt = "==1.7.1"
+pytz = "==2020.1"
+sqlparse = "==0.3.1"
+django-rest-swagger = "==2.2.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
