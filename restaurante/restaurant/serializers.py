@@ -18,8 +18,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        auth_user = User.objects.create_user(**validated_data)
-        return auth_user
+        return User.objects.create_user(**validated_data)
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -46,7 +45,7 @@ class UserLoginSerializer(serializers.Serializer):
 
         try:
             refresh = RefreshToken.for_user(user)
-            
+
             # refresh_token = str(refresh)
             # access_token = str(refresh.access_token)
             access_token = refresh.access_token
@@ -54,15 +53,14 @@ class UserLoginSerializer(serializers.Serializer):
 
             update_last_login(None, user)
 
-            validation = {
+            return {
                 # 'access': access_token,
-                'access': str(access_token), 
+                'access': str(access_token),
                 'refresh': str(refresh),
                 'email': user.email,
-                'role': user.role
+                'role': user.role,
             }
 
-            return validation
         except User.DoesNotExist:
             raise serializers.ValidationError("Invalid login credentials")
 
@@ -109,8 +107,7 @@ class RestaurantCreateSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        restaurant = Restaurant.objects.create(**validated_data)
-        return restaurant
+        return Restaurant.objects.create(**validated_data)
 
 
 
@@ -143,8 +140,7 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        review = Review.objects.create(**validated_data)
-        return review
+        return Review.objects.create(**validated_data)
 
 
 #------------------------------Reply--------------------------------#
@@ -170,5 +166,4 @@ class ReplyCreateSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        reply = Reply.objects.create(**validated_data)
-        return reply
+        return Reply.objects.create(**validated_data)
