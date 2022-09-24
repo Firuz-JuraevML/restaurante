@@ -25,9 +25,7 @@ class UserRegistrationView(APIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        valid = serializer.is_valid(raise_exception=True)
-
-        if valid:
+        if valid := serializer.is_valid(raise_exception=True):
             serializer.save()
             status_code = status.HTTP_201_CREATED
 
@@ -49,9 +47,7 @@ class UserLoginView(APIView):
         user_uid = User.objects.all().filter(email=request.data['email'])[0].uid
 
         serializer = self.serializer_class(data=request.data)
-        valid = serializer.is_valid(raise_exception=True)
-
-        if valid:
+        if valid := serializer.is_valid(raise_exception=True):
             status_code = status.HTTP_200_OK
 
             response = {
@@ -161,7 +157,6 @@ class UserEditView1(APIView):
                     'message': 'User is successfully deleted!',
                     'user': serializer.data
                 }
-                return Response(response, status=status_code)
             else: 
                 status_code = status.HTTP_403_FORBIDDEN
 
@@ -171,7 +166,6 @@ class UserEditView1(APIView):
                     'message': 'User is not deleted!', 
                     'user': []
                 }
-                return Response(response, status=status_code)
         else: 
             status_code = status.HTTP_403_FORBIDDEN
 
@@ -181,7 +175,8 @@ class UserEditView1(APIView):
                     'message': 'User is successfully deleted!',
                     'user': []
             }
-            return Response(response, status=status_code)
+
+        return Response(response, status=status_code)
 
 
     
@@ -193,13 +188,13 @@ class RestaurantListView(APIView):
 
     def get(self, request):
         user = request.user
+        restaurants = Restaurant.objects.all()
+        reviews = Review.objects.all() 
+
+        avg_rate = 0.0
+
         if user.role == 2:
-            restaurants = Restaurant.objects.all() 
-            reviews = Review.objects.all() 
-
             owners_restaurants = []
-            avg_rate = 0.0
-
             for res in restaurants:  
                 if res.owner.uid == user.uid: 
                     avg_rate = 0.0
@@ -209,16 +204,12 @@ class RestaurantListView(APIView):
                         if rev.restaurant.id == res.id:
                             count = count + 1 
                             avg_rate = avg_rate + rev.rate 
-                    
-                    if count != 0: 
-                        res.overall_rating = (avg_rate / count)
-                    else: 
-                        res.overall_rating = 0.0
 
+                    res.overall_rating = (avg_rate / count) if count != 0 else 0.0
                     res.unread_reviews = len(Review.objects.all().filter(restaurant=res.id, has_reply=False))
                     owners_restaurants.append(res) 
 
-                    
+
             # print ("Mana bu yerda") 
 
             serializer = self.serializer_class(owners_restaurants, many=True)
@@ -229,14 +220,8 @@ class RestaurantListView(APIView):
                 'restaurants': serializer.data
 
             }
-            return Response(response, status=status.HTTP_200_OK)
         else: 
-            restaurants = Restaurant.objects.all()
-            reviews = Review.objects.all()
-
-            rated_restaurants = [] 
-            avg_rate = 0.0 
-
+            rated_restaurants = []
             for res in restaurants:
                 avg_rate = 0.0
                 count = 0 
@@ -245,14 +230,9 @@ class RestaurantListView(APIView):
                     if rev.restaurant.id == res.id:
                         count = count + 1 
                         avg_rate = avg_rate + rev.rate 
-                
-                if count != 0: 
-                    res.overall_rating = (avg_rate / count)
-                else: 
-                    res.overall_rating = 0.0
-                
-                
-                res.unread_reviews = -1             
+
+                res.overall_rating = (avg_rate / count) if count != 0 else 0.0
+                res.unread_reviews = -1
                 rated_restaurants.append(res)
 
             serializer = self.serializer_class(rated_restaurants, many=True)
@@ -263,7 +243,8 @@ class RestaurantListView(APIView):
                 'restaurants': serializer.data
 
             }
-            return Response(response, status=status.HTTP_200_OK)
+
+        return Response(response, status=status.HTTP_200_OK)
 
 
 
@@ -308,9 +289,7 @@ class ReviewCreateView(APIView):
     def post(self, request):
         # user = request.user
         serializer = self.serializer_class(data=request.data)
-        valid = serializer.is_valid(raise_exception=True)
-
-        if valid:
+        if valid := serializer.is_valid(raise_exception=True):
             serializer.save()
             status_code = status.HTTP_201_CREATED
 
@@ -319,10 +298,10 @@ class ReviewCreateView(APIView):
                 'statusCode': status_code,
                 'message': 'Review successfully registered!',
                 'review': serializer.data
-            }            
+            }
             return Response(response, status=status_code)
 
-        else: 
+        else:
             response = {
                 'success': False,
                 'status_code': status.HTTP_403_FORBIDDEN,
@@ -340,7 +319,7 @@ class ReviewListView(APIView):
     def get(self, request):
         user = request.user
         restaurant = self.request.query_params.get('restaurant')
-        
+
         print(restaurant)
 
         if user.role == 7:
@@ -353,13 +332,10 @@ class ReviewListView(APIView):
             return Response(response, status.HTTP_403_FORBIDDEN)
         else:
             reviews = Review.objects.all()
-            
-            ########
-            reviews_list = [] 
 
-            for rev in reviews: 
-                if rev.restaurant.id == int(restaurant):
-                    reviews_list.append(rev) 
+            ########
+            reviews_list = [rev for rev in reviews if rev.restaurant.id == int(restaurant)] 
+
             ########
 
             serializer = self.serializer_class(reviews_list, many=True)

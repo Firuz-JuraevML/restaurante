@@ -62,7 +62,7 @@ class UserTest(APITestCase, URLPatternsTestCase):
 
         # Test the endpoint
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='JWT ' + token)
+        client.credentials(HTTP_AUTHORIZATION=f'JWT {token}')
         response = client.get(reverse('users'))
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -82,7 +82,7 @@ class UserTest(APITestCase, URLPatternsTestCase):
 
         # Test the endpoint
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='JWT ' + token)
+        client.credentials(HTTP_AUTHORIZATION=f'JWT {token}')
         response = client.get(reverse('users'))
         response_data = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
